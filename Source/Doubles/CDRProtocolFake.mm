@@ -4,8 +4,17 @@
 #import <objc/runtime.h>
 
 static bool protocol_hasSelector(Protocol *protocol, SEL selector, BOOL is_required_method, BOOL is_instance_method) {
-    objc_method_description method_description = protocol_getMethodDescription(protocol, selector, is_required_method, is_instance_method);
-    return method_description.name && method_description.types;
+    BOOL hasSelector = NO;
+    unsigned int outCount = 0;
+    objc_method_description *method_descriptions = protocol_copyMethodDescriptionList(protocol, is_required_method, is_instance_method, &outCount);
+    for (unsigned int index = 0; index < outCount; ++index) {
+        if (method_descriptions[index].name == selector && method_descriptions[index].types) {
+            hasSelector = YES;
+            break;
+        }
+    }
+    free(method_descriptions);
+    return hasSelector;
 }
 
 static bool CDR_protocol_hasSelector(Protocol *protocol, SEL selector) {
