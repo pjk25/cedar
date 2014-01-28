@@ -1,6 +1,19 @@
 #import <Cedar/SpecHelper.h>
 #import "SimpleIncrementer.h"
 
+#if TARGET_OS_IPHONE
+#   if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
+#       define CDR_DISPATCH_RELEASE(q) (dispatch_release(q))
+#   endif
+#else
+#   if MAC_OS_X_VERSION_MIN_REQUIRED < 1080
+#       define CDR_DISPATCH_RELEASE(q) (dispatch_release(q))
+#   endif
+#endif
+#ifndef CDR_DISPATCH_RELEASE
+#   define CDR_DISPATCH_RELEASE(q)
+#endif
+
 #if !__has_feature(objc_arc)
 #error This spec must be compiled with ARC to work properly
 #endif
@@ -47,6 +60,8 @@ sharedExamplesFor(@"a Cedar double when used with ARC", ^(NSDictionary *sharedCo
                     NSDate *futureDate = [NSDate dateWithTimeIntervalSinceNow:0.1];
                     [[NSRunLoop currentRunLoop] runUntilDate:futureDate];
                 }
+
+                CDR_DISPATCH_RELEASE(group);
 
                 myDouble should have_received("methodWithBlock:");
                 [myDouble reset_sent_messages];
