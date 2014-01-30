@@ -8,8 +8,12 @@
 void CDRSpyClassDealloc(id obj, SEL cmd) {
     CDRSpyInfo *spyInfo = [CDRSpyInfo spyInfoForObject:obj];
     if (spyInfo) {
+        Class originalClass = [obj class];
         [CDRSpyInfo clearSpyInfoForObject:obj];
-        [obj dealloc];
+        if (originalClass) {
+            object_setClass(obj, originalClass);
+            [obj dealloc];
+        }
     }
 }
 
