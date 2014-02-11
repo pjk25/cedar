@@ -6,22 +6,14 @@
 
 namespace Cedar { namespace Matchers {
     struct BeNilMessageBuilder {
-        template<typename U>
-        static NSString * string_for_actual_value(const U & value) {
-            // ARC bug: http://lists.apple.com/archives/objc-language/2012/Feb/msg00078.html
-#if __has_feature(objc_arc)
-            if (strcmp(@encode(U), @encode(id)) == 0) {
-                void *ptrOfPtr = (void *)&value;
-                void *ptr = *(reinterpret_cast<void **>(ptrOfPtr));
-                return ptr ? [NSString stringWithFormat:@"%p", ptr] : @"nil";
-            }
-#endif
-            throw std::logic_error("Should never generate a failure message for a nil comparison to non-pointer type.");
-        }
-
-        template<typename U>
-        static NSString * string_for_actual_value(U * const & value) {
+        static NSString * __attribute__((overloadable)) string_for_actual_value(void * value) {
             return value ? [NSString stringWithFormat:@"%p", value] : @"nil";
+        }
+        static NSString * __attribute__((overloadable)) string_for_actual_value(const __weak id value) {
+            return value ? [NSString stringWithFormat:@"%p", value] : @"nil";
+        }
+        static NSString * __attribute__((overloadable)) string_for_actual_value(const long value) {
+            throw std::logic_error("Should never generate a failure message for a nil comparison to non-pointer type.");
         }
     };
 
